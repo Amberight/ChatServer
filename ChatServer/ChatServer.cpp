@@ -3,7 +3,7 @@
 
 int main()
 {
-	Server ser; //Setup
+	Server ser;
 	ser.setUp();
 	return 0;
 }
