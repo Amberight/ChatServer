@@ -15,6 +15,8 @@ class Server
 {
 private:
 	static void msgTransfer(SOCKET &Sender, SOCKET &Reciever, char cliName1[20], char cliName2[20]);
+	static void clientGet(SOCKET &Lis);
+	static void chatRoom();
 public:
 	Server();
 	void setUp();
