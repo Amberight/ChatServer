@@ -1,4 +1,4 @@
-﻿Build started 8/30/2018 9:50:23 PM.
+﻿Build started 8/27/2018 12:01:47 PM.
      1>Project "D:\Users\Justice\Documents\Visual Studio 2013\Projects\Study1\ChatServer\ChatClient\ChatClient.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
          J:\Program Files\Visual Studio 2013\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"stdafx.h" /Fp"Debug\ChatClient.pch" /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt Connection.cpp
@@ -12,4 +12,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:01.18
+Time Elapsed 00:00:00.97

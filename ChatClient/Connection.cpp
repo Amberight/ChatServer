@@ -9,7 +9,7 @@ std::string clientName;
 Connection::Connection()
 {
 	printf("\n\tSpecify your name to be used in chat: "); //Establishes client's name on startup and launches server
-	std::getline(std::cin, clientName);
+	std::cin >> clientName; 
 	connectionSetup();
 }
 
@@ -35,26 +35,14 @@ void Connection::connectionSetup()
 
 	connect(sock, (SOCKADDR*)&ADDRESS, sizeof(ADDRESS)); //Sends client Name to the servers and recieves other client's name.
 	SUCCESSFUL = send(sock, clientName.c_str(), 20, NULL);
-	char answer;
-	std::cout << "wanna chat? y/n: ";
-	std::cin >> answer;
-	if (answer == 'y')
-	{
-		printf("\n");
-		SUCCESSFUL = recv(sock, otherChar, sizeof(otherChar), NULL);
-		otherClient = otherChar;
+	SUCCESSFUL = recv(sock, otherChar, sizeof(otherChar), NULL);
+	otherClient = otherChar;
 
-		std::thread reciever(&Connection::messageRecv, sock); //Starts recievung messages
-		std::thread sender(&Connection::messageSend, sock); //Starts sending messages
+	std::thread reciever(&Connection::messageRecv, sock); //Starts recievung messages
+	std::thread sender(&Connection::messageSend, sock); //Starts sending messages
 
-		reciever.join();
-		sender.join();
-	}
-	else
-	{
-		printf("\nOkay, exiting app... ");
-	}
-	
+	reciever.join();
+	sender.join();
 
 	std::getchar();
 }
@@ -66,7 +54,7 @@ void Connection::messageRecv(SOCKET &Ser) //Message reciever
 		long RESULT;
 		std::string message;
 		char charMessage[100];
-
+		
 		RESULT = recv(Ser, charMessage, sizeof(charMessage), NULL); //Recieves a message from server
 		for (int i = 0, g = 0; i < 20; i++) //Starts decrypting a message from server, using client's name as Key
 		{
