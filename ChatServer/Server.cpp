@@ -5,7 +5,7 @@
 #include <fstream>
 #include <vector>
 
-static char client1[20]; //Globals
+static char client1[20]; //Essential globals
 static char client2[20];
 std::vector<SOCKET> Clients;
 std::vector<std::string> clientNames;
@@ -15,7 +15,7 @@ int unassignedCleints = 0;
 int clientCounter = 0;
 std::vector<std::thread> threads;
 
-long SUCCESSFUL; //Declaring essentials
+long SUCCESSFUL;
 WSAData WinSockData;
 WORD DLLVERSION;
 
@@ -33,19 +33,19 @@ void Server::setUp()
 	ADDRESS.sin_family = AF_INET;
 	ADDRESS.sin_port = htons(444);
 
-	SOCKET listenSocket; //Listeining socket and client connection sockets
-
+	SOCKET listenSocket; //Listeining socket
 	listenSocket = socket(AF_INET, SOCK_STREAM, NULL);
 	bind(listenSocket, (SOCKADDR*)&ADDRESS, sizeof(ADDRESS));
-	listen(listenSocket, SOMAXCONN); //Listeing socket
+	listen(listenSocket, SOMAXCONN); //Listeing socket is opem to maximum connections
 
-	std::thread clientCollector(&Server::clientGet, listenSocket);
+	std::thread clientCollector(&Server::clientGet, listenSocket); //Starts a thread with clientGet function on listeing socket
 
 
-	Server::chatRoom();
+	Server::chatGroup();
+	//Server::chatSession();
 }
 
-void Server::chatRoom()
+void Server::chatSession()
 {
 	while (true)
 	{
@@ -57,8 +57,8 @@ void Server::chatRoom()
 			char secondName[20];
 			strcpy_s(firstName, sizeof(firstName), clientNames[First].c_str());
 			strcpy_s(secondName, sizeof(secondName), clientNames[Second].c_str());
-			SUCCESSFUL = send(Clients[First], secondName, 20, NULL);
-			SUCCESSFUL = send(Clients[Second], firstName, 20, NULL);
+			//SUCCESSFUL = send(Clients[First], secondName, 20, NULL);
+			//SUCCESSFUL = send(Clients[Second], firstName, 20, NULL);
 
 			threads.push_back(std::thread(&Server::msgTransfer, Clients[First], Clients[Second], firstName, secondName));
 			threads.push_back(std::thread(&Server::msgTransfer, Clients[Second], Clients[First], secondName, firstName));
@@ -67,17 +67,17 @@ void Server::chatRoom()
 	}
 }
 
-void Server::clientGet(SOCKET &Lis)
+void Server::clientGet(SOCKET &Lis) //Takes a listening socket 
 {
 	while (true)
 	{
 		SOCKET TempClient;
 		char TempName[20];
-		if (TempClient = accept(Lis, (SOCKADDR*)&ADDRESS, &AddressSize))
+		if (TempClient = accept(Lis, (SOCKADDR*)&ADDRESS, &AddressSize)) //Accepts an incoming connection from "Lis" socket to a "TempClient" socket
 		{
-			Clients.push_back(TempClient);
-			SUCCESSFUL = recv(Clients[clientCounter], TempName, sizeof(client1), NULL);
-			clientNames.push_back(TempName);
+			Clients.push_back(TempClient); //Adding "TempClient" socket to a "Clients" vector array
+			SUCCESSFUL = recv(Clients[clientCounter], TempName, 20, NULL); 
+			clientNames.push_back(TempName); //Adding recieved client name to "clientNames" vector array 
 
 			unassignedCleints++;
 			clientCounter++;
@@ -86,16 +86,16 @@ void Server::clientGet(SOCKET &Lis)
 	}
 }
 
-void Server::msgTransfer(SOCKET &Sender, SOCKET &Reciever, char cliName1[20], char cliName2[20])
+void Server::msgTransfer(SOCKET &Sender, SOCKET &Reciever, char cliName1[20], char cliName2[20]) // Takes 2 sockets as reciever and sender from "Clients" and takes 2 client names
 {
 	long RESULT;
 	char charMessage[100];
 
-	for (;;)
+	while (true)
 	{
 		RESULT = recv(Sender, charMessage, sizeof(charMessage), NULL); //Recieves sent data
 
-		for (int i = 0, g = 0; i < 20; i++) //Starts to decrypt sent data using sender's name as key
+		for (int i = 0, g = 0; i < 20; i++) //Decrypts "charMessage" using char array "cliName1" as a key
 		{
 			if (charMessage[g] == NULL)
 			{
@@ -128,6 +128,85 @@ void Server::msgTransfer(SOCKET &Sender, SOCKET &Reciever, char cliName1[20], ch
 		}
 
 		RESULT = send(Reciever, charMessage, sizeof(charMessage), NULL);
+	}
+}
+
+void Server::chatGroup()
+{
+	int counter = 0;
+	while (true)
+	{
+		if (clientCounter > counter)
+		{
+			threads.push_back(std::thread(&Server::msgMultiTransfer, Clients[counter], clientNames[counter]));
+			counter++;
+		}
+	}
+}
+
+void Server::msgSend(SOCKET &Reciever, std::string recvName, char msg[100]) //Recieves client socket from "Clients" array, client name and Message to be sent
+{
+	long RESULT; 
+	char tempName[20];
+	char tempMsg[130];
+	strcpy_s(tempName, (sizeof(tempName) / sizeof(tempName[0])), recvName.c_str());
+	strcpy_s(tempMsg, (sizeof(tempMsg) / sizeof(tempMsg[0])), recvName.c_str());
+	strcat_s(tempMsg, " says: ");
+	strcat_s(tempMsg, msg);
+
+	
+	for (int i = 0, g = 0; i < 20; i++) //Encrypts message array using client name as key by adding consecutive chars from "recvName" to "msg" chars
+	{
+		if (tempMsg[g] == NULL)
+		{
+			break;
+		}
+		if (tempName[i] == NULL)
+		{
+			i = 0;
+		}
+		tempMsg[g] = tempMsg[g] + tempName[i];
+		g++;
+	}
+
+	RESULT = send(Reciever, tempMsg, 100, NULL);
+}
+
+void Server::msgMultiTransfer(SOCKET &Sender, std::string recvName) //
+{
+	long RESULT;
+	char charMessage[100];
+	char tempRecName[20];
+	strcpy_s(tempRecName, sizeof(tempRecName), recvName.c_str());
+	while (true)
+	{
+		RESULT = recv(Sender, charMessage, sizeof(charMessage), NULL); //Recieves sent data from connected socket "Sender" to a "charMessage" array
+
+		for (int i = 0, g = 0; i < 20; i++) //Decrypts message array using client name as key by subtracting consecutive "tempName" chars from "charMessage"
+		{
+			if (charMessage[g] == NULL)
+			{
+				break;
+			}
+			if (tempRecName[i] == NULL)
+			{
+				i = 0;
+			}
+			charMessage[g] = charMessage[g] - tempRecName[i];
+			g++;
+		}
+
+		for (int p = 0; p < clientCounter; p++)
+		{
+			if (recvName == clientNames[p])
+			{
+				
+			}
+			else
+			{
+				Server::msgSend(Clients[p], clientNames[p], charMessage);
+			}
+		}
 	}
 }
 

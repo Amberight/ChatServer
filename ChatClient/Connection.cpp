@@ -3,7 +3,7 @@
 #include <thread>
 #include <Windows.h>
 
-std::string otherClient = "NULL";
+std::string otherClient = "Other client";
 std::string clientName;
 
 Connection::Connection()
@@ -41,8 +41,8 @@ void Connection::connectionSetup()
 	if (answer == 'y')
 	{
 		printf("\n");
-		SUCCESSFUL = recv(sock, otherChar, sizeof(otherChar), NULL);
-		otherClient = otherChar;
+		//SUCCESSFUL = recv(sock, otherChar, sizeof(otherChar), NULL);
+		//otherClient = otherChar;
 
 		std::thread reciever(&Connection::messageRecv, sock); //Starts recievung messages
 		std::thread sender(&Connection::messageSend, sock); //Starts sending messages
@@ -67,7 +67,7 @@ void Connection::messageRecv(SOCKET &Ser) //Message reciever
 		std::string message;
 		char charMessage[100];
 
-		RESULT = recv(Ser, charMessage, sizeof(charMessage), NULL); //Recieves a message from server
+		RESULT = recv(Ser, charMessage, 130, NULL); //Recieves a message from server
 		for (int i = 0, g = 0; i < 20; i++) //Starts decrypting a message from server, using client's name as Key
 		{
 			if (charMessage[g] == NULL)
@@ -84,7 +84,8 @@ void Connection::messageRecv(SOCKET &Ser) //Message reciever
 		message = charMessage;
 
 		std::cout << std::endl;
-		std::cout << otherClient << ": " << message << std::endl; //Prints out othr client's name and messagee
+		//std::cout << otherClient << ": " << message << std::endl; //Prints out othr client's name and messagee
+		std::cout << charMessage << std::endl;
 	}
 }
 

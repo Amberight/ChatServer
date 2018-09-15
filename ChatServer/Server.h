@@ -16,7 +16,11 @@ class Server
 private:
 	static void msgTransfer(SOCKET &Sender, SOCKET &Reciever, char cliName1[20], char cliName2[20]);
 	static void clientGet(SOCKET &Lis);
-	static void chatRoom();
+	static void chatGroup();
+	static void chatSession();
+	static void msgMultiTransfer(SOCKET &Sender, std::string senderName/*char cliName1[20]*/);
+	static void msgSend(SOCKET &Reciever, /*char tempName[20]*/std::string recvName, char msg[100]);
+	void msgRecv();
 public:
 	Server();
 	void setUp();
