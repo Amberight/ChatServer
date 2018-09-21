@@ -20,7 +20,9 @@ private:
 	static void chatSession();
 	static void msgMultiTransfer(SOCKET &Sender, std::string senderName/*char cliName1[20]*/);
 	static void msgSend(SOCKET &Reciever, /*char tempName[20]*/std::string recvName, char msg[100]);
-	void msgRecv();
+	static void msgDecrypt(char name[20], char msg[100]);
+	static void msgEncrypt(char name[20], char msg[100]);
+	static void msgRecv();
 public:
 	Server();
 	void setUp();

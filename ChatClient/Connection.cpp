@@ -4,12 +4,12 @@
 #include <Windows.h>
 
 std::string otherClient = "Other client";
-std::string clientName;
+char clientName[20];
 
 Connection::Connection()
 {
 	printf("\n\tSpecify your name to be used in chat: "); //Establishes client's name on startup and launches server
-	std::getline(std::cin, clientName);
+	std::cin.getline(clientName, 20);
 	connectionSetup();
 }
 
@@ -34,9 +34,9 @@ void Connection::connectionSetup()
 	ADDRESS.sin_port = htons(444);
 
 	connect(sock, (SOCKADDR*)&ADDRESS, sizeof(ADDRESS)); //Sends client Name to the servers and recieves other client's name.
-	SUCCESSFUL = send(sock, clientName.c_str(), 20, NULL);
+	SUCCESSFUL = send(sock, clientName, 20, NULL);
 	char answer;
-	std::cout << "wanna chat? y/n: ";
+	std::cout << "wanna join group chat? y/n: ";
 	std::cin >> answer;
 	if (answer == 'y')
 	{
@@ -54,67 +54,68 @@ void Connection::connectionSetup()
 	{
 		printf("\nOkay, exiting app... ");
 	}
-
-
-	std::getchar();
 }
 
-void Connection::messageRecv(SOCKET &Ser) //Message reciever
+void Connection::messageRecv(SOCKET &Ser) // Message reciever, ecieves data on socket "Ser"
 {
 	for (;;)
 	{
 		long RESULT;
-		std::string message;
 		char charMessage[100];
 
-		RESULT = recv(Ser, charMessage, 130, NULL); //Recieves a message from server
-		for (int i = 0, g = 0; i < 20; i++) //Starts decrypting a message from server, using client's name as Key
-		{
-			if (charMessage[g] == NULL)
-			{
-				break;
-			}
-			if (clientName[i] == NULL)
-			{
-				i = 0;
-			}
-			charMessage[g] = charMessage[g] - clientName[i];
-			g++;
-		}
-		message = charMessage;
-
-		std::cout << std::endl;
-		//std::cout << otherClient << ": " << message << std::endl; //Prints out othr client's name and messagee
+		RESULT = recv(Ser, charMessage, 130, NULL); // Assigns recieved data to "charMessage" array
+		Connection::msgDecrypt(clientName, charMessage); // Decrypts recieved data using clientName as key
 		std::cout << charMessage << std::endl;
+		std::cout << std::endl;
 	}
 }
 
-void Connection::messageSend(SOCKET &Ser)//Message sender
+void Connection::messageSend(SOCKET &Ser) // Message sender, sends data through a "Ser" socket
 {
 	for (;;)
 	{
 		long RESULT;
-		std::string message;
 		char charMessage[100];
-		std::cin.getline(charMessage, 100); //Gets client message
-		//std::getline(std::cin, message);
+		std::cin.getline(charMessage, 100); // Gets client message
+		std::cout << std::endl;
 
-		for (int i = 0, g = 0; i < 20; i++) //Encrypts client's messsage, using client's name as Key
-		{
-			if (charMessage[g] == NULL)
-			{
-				break;
-			}
-			if (clientName[i] == NULL)
-			{
-				i = 0;
-			}
-			charMessage[g] = charMessage[g] + clientName[i];
-			g++;
-		}
+		Connection::msgEncrypt(clientName, charMessage); // Encrypts client's message "charMessage" using "clientName" as key
 
 		RESULT = send(Ser, charMessage, 100, NULL);
-		//RESULT = send(Ser, message.c_str(), 100, NULL);
+	}
+}
+
+void Connection::msgEncrypt(char name[20], char msg[100])
+{
+	for (int i = 0, g = 0; i < 20; i++) //Encrypts message array using client name as key by adding consecutive chars from "recvName" to "msg" chars
+	{
+		if (msg[g] == NULL)
+		{
+			break;
+		}
+		if (name[i] == NULL)
+		{
+			i = 0;
+		}
+		msg[g] = msg[g] + name[i];
+		g++;
+	}
+}
+
+void Connection::msgDecrypt(char name[20], char msg[100])
+{
+	for (int i = 0, g = 0; i < 20; i++) //Decrypts message array using client name as key by subtracting consecutive "tempName" chars from "charMessage"
+	{
+		if (msg[g] == NULL)
+		{
+			break;
+		}
+		if (name[i] == NULL)
+		{
+			i = 0;
+		}
+		msg[g] = msg[g] - name[i];
+		g++;
 	}
 }
 
